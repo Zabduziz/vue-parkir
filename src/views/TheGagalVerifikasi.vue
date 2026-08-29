@@ -1,45 +1,34 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
-import { useAuth } from "../composables/useAuth";
+import { useAuth, API_BASE } from "../composables/useAuth";
 
-interface ParkirItem {
+interface GagalItem {
     id: number;
     platNomor: string;
-    confidencePlat: number;
-    waktuMasuk: string;
-    waktuKeluar: string;
-    status: string;
-    gambarMasukPath: string;
-    gambarKeluarPath: string;
+    gambarGagalPath: string;
     similarity: number;
+    waktuValidasi: string;
 }
 
-const parkirList = ref<ParkirItem[]>([]);
+const gagalList = ref<GagalItem[]>([]);
 const isLoading = ref(true);
 const errorMessage = ref("");
 const selectedImage = ref("");
 const searchQuery = ref("");
 
 const filteredList = computed(() => {
-    if (!searchQuery.value.trim()) return parkirList.value;
+    if (!searchQuery.value.trim()) return gagalList.value;
     const q = searchQuery.value.toLowerCase();
-    return parkirList.value.filter(
+    return gagalList.value.filter(
         (item) =>
             item.platNomor?.toLowerCase().includes(q) ||
             item.id?.toString().includes(q),
     );
 });
 
-const totalParkir = computed(() => parkirList.value.length);
-const totalMasuk = computed(
-    () => parkirList.value.filter((i) => i.status === "masuk").length,
-);
-const totalKeluar = computed(
-    () => parkirList.value.filter((i) => i.status === "keluar").length,
-);
+const totalGagal = computed(() => gagalList.value.length);
 
 const { authFetch } = useAuth();
-import { API_BASE } from "../composables/useAuth";
 
 function imageUrl(path: string): string {
     if (!path) return "";
@@ -51,16 +40,16 @@ function imageUrl(path: string): string {
     }
 }
 
-const fetchParkirs = async () => {
+const fetchGagal = async () => {
     try {
         isLoading.value = true;
         errorMessage.value = "";
-        const response = await authFetch(`${API_BASE}/history`);
+        const response = await authFetch(`${API_BASE}/parkir/gagal`);
         if (!response.ok) {
             throw new Error("Network response was not ok");
         }
-        const historyList = await response.json();
-        parkirList.value = historyList.data;
+        const result = await response.json();
+        gagalList.value = result.data;
     } catch (error: any) {
         errorMessage.value = error.message;
     } finally {
@@ -69,7 +58,7 @@ const fetchParkirs = async () => {
 };
 
 onMounted(() => {
-    fetchParkirs();
+    fetchGagal();
 });
 </script>
 
@@ -77,11 +66,11 @@ onMounted(() => {
     <div class="py-4">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h4 class="fw-bold mb-0">
-                <i class="bi bi-grid-fill me-2"></i>Dashboard
+                <i class="bi bi-x-octagon-fill me-2"></i>Gagal Verifikasi
             </h4>
             <button
                 class="btn btn-outline-primary btn-sm"
-                @click="fetchParkirs"
+                @click="fetchGagal"
                 :disabled="isLoading"
             >
                 <i class="bi bi-arrow-clockwise me-1"></i>Refresh
@@ -90,34 +79,12 @@ onMounted(() => {
 
         <div class="row g-3 mb-4">
             <div class="col-md-4">
-                <div class="card border-0 shadow-sm bg-primary text-white">
-                    <div class="card-body d-flex align-items-center gap-3">
-                        <i class="bi bi-car-front fs-1"></i>
-                        <div>
-                            <h6 class="card-title mb-0">Total Parkir</h6>
-                            <span class="fs-3 fw-bold">{{ totalParkir }}</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card border-0 shadow-sm bg-success text-white">
-                    <div class="card-body d-flex align-items-center gap-3">
-                        <i class="bi bi-box-arrow-in-right fs-1"></i>
-                        <div>
-                            <h6 class="card-title mb-0">Masuk</h6>
-                            <span class="fs-3 fw-bold">{{ totalMasuk }}</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
                 <div class="card border-0 shadow-sm bg-danger text-white">
                     <div class="card-body d-flex align-items-center gap-3">
-                        <i class="bi bi-box-arrow-right fs-1"></i>
+                        <i class="bi bi-x-circle fs-1"></i>
                         <div>
-                            <h6 class="card-title mb-0">Keluar</h6>
-                            <span class="fs-3 fw-bold">{{ totalKeluar }}</span>
+                            <h6 class="card-title mb-0">Total Gagal</h6>
+                            <span class="fs-3 fw-bold">{{ totalGagal }}</span>
                         </div>
                     </div>
                 </div>
@@ -128,7 +95,7 @@ onMounted(() => {
             <div
                 class="card-header bg-white d-flex justify-content-between align-items-center py-3"
             >
-                <h5 class="mb-0 fw-semibold">Parkir History</h5>
+                <h5 class="mb-0 fw-semibold">Data Gagal Verifikasi</h5>
                 <div
                     class="input-group input-group-sm"
                     style="max-width: 280px"
@@ -149,7 +116,7 @@ onMounted(() => {
                     <div class="spinner-border text-primary mb-2" role="status">
                         <span class="visually-hidden">Loading...</span>
                     </div>
-                    <p class="text-muted mb-0">Memuat data parkir...</p>
+                    <p class="text-muted mb-0">Memuat data gagal verifikasi...</p>
                 </div>
 
                 <div v-else-if="errorMessage" class="alert alert-danger m-3">
@@ -163,7 +130,7 @@ onMounted(() => {
                 >
                     <i class="bi bi-inbox fs-1 text-muted"></i>
                     <p class="text-muted mt-2 mb-0">
-                        Tidak ada data parkir ditemukan
+                        Tidak ada data gagal verifikasi ditemukan
                     </p>
                 </div>
 
@@ -173,71 +140,29 @@ onMounted(() => {
                             <tr>
                                 <th>ID</th>
                                 <th>Plat Nomor</th>
-                                <th>Confidence</th>
-                                <th>Waktu Masuk</th>
-                                <th>Waktu Keluar</th>
-                                <th>Status</th>
-                                <th>Gambar Masuk</th>
-                                <th>Gambar Keluar</th>
                                 <th>Similarity</th>
+                                <th>Waktu Validasi</th>
+                                <th>Gambar</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr v-for="item in filteredList" :key="item.id">
                                 <td>{{ item.id }}</td>
                                 <td class="fw-medium">{{ item.platNomor }}</td>
-                                <td>{{ item.confidencePlat }}</td>
-                                <td>{{ item.waktuMasuk }}</td>
-                                <td>{{ item.waktuKeluar }}</td>
-                                <td>
-                                    <span
-                                        class="badge rounded-pill"
-                                        :class="
-                                            item.status === 'masuk'
-                                                ? 'bg-success'
-                                                : item.status === 'keluar'
-                                                  ? 'bg-danger'
-                                                  : 'bg-secondary'
-                                        "
-                                    >
-                                        <i
-                                            class="bi me-1"
-                                            :class="
-                                                item.status === 'masuk'
-                                                    ? 'bi-box-arrow-in-right'
-                                                    : item.status === 'keluar'
-                                                      ? 'bi-box-arrow-right'
-                                                      : ''
-                                            "
-                                        ></i>
-                                        {{ item.status }}
-                                    </span>
-                                </td>
-                                <td>
-                                    <button
-                                        class="btn btn-sm btn-outline-primary"
-                                        data-bs-toggle="modal"
-                                        data-bs-target="#myModal"
-                                        @click="
-                                            selectedImage = imageUrl(item.gambarMasukPath)
-                                        "
-                                    >
-                                        <i class="bi bi-image me-1"></i>Lihat
-                                    </button>
-                                </td>
-                                <td>
-                                    <button
-                                        class="btn btn-sm btn-outline-primary"
-                                        data-bs-toggle="modal"
-                                        data-bs-target="#myModal"
-                                        @click="
-                                            selectedImage = imageUrl(item.gambarKeluarPath)
-                                        "
-                                    >
-                                        <i class="bi bi-image me-1"></i>Lihat
-                                    </button>
-                                </td>
                                 <td>{{ item.similarity }}</td>
+                                <td>{{ item.waktuValidasi }}</td>
+                                <td>
+                                    <button
+                                        class="btn btn-sm btn-outline-primary"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#gagalImageModal"
+                                        @click="
+                                            selectedImage = imageUrl(item.gambarGagalPath)
+                                        "
+                                    >
+                                        <i class="bi bi-image me-1"></i>Lihat
+                                    </button>
+                                </td>
                             </tr>
                         </tbody>
                     </table>
@@ -249,16 +174,16 @@ onMounted(() => {
     <!-- Image Modal -->
     <div
         class="modal fade"
-        id="myModal"
+        id="gagalImageModal"
         tabindex="-1"
-        aria-labelledby="myModalLabel"
+        aria-labelledby="gagalImageModalLabel"
         aria-hidden="true"
     >
         <div class="modal-dialog modal-lg modal-dialog-centered">
             <div class="modal-content border-0">
                 <div class="modal-header border-0">
-                    <h5 class="modal-title" id="myModalLabel">
-                        <i class="bi bi-image me-2"></i>Parking Image
+                    <h5 class="modal-title" id="gagalImageModalLabel">
+                        <i class="bi bi-image me-2"></i>Gambar Gagal Verifikasi
                     </h5>
                     <button
                         type="button"

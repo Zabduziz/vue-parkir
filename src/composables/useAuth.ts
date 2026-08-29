@@ -1,11 +1,29 @@
 import { ref, computed } from "vue";
 
-const API_BASE = "http://127.0.0.1:3000";
+export const API_BASE = import.meta.env.VITE_API_BASE;
+
+export interface User {
+    id: number;
+    nama: string;
+    username: string;
+    role: "admin" | "petugas";
+}
 
 const token = ref<string | null>(localStorage.getItem("jwt"));
+const user = ref<User | null>(loadUser());
+
+function loadUser(): User | null {
+    try {
+        const raw = localStorage.getItem("user");
+        return raw ? (JSON.parse(raw) as User) : null;
+    } catch {
+        return null;
+    }
+}
 
 export function useAuth() {
     const isAuthenticated = computed(() => token.value !== null);
+    const isAdmin = computed(() => user.value?.role === "admin");
 
     function setToken(newToken: string | null) {
         token.value = newToken;
@@ -13,6 +31,15 @@ export function useAuth() {
             localStorage.setItem("jwt", newToken);
         } else {
             localStorage.removeItem("jwt");
+        }
+    }
+
+    function setUser(newUser: User | null) {
+        user.value = newUser;
+        if (newUser) {
+            localStorage.setItem("user", JSON.stringify(newUser));
+        } else {
+            localStorage.removeItem("user");
         }
     }
 
@@ -28,6 +55,7 @@ export function useAuth() {
         }
         const data = await res.json();
         setToken(data.token ?? data.accessToken ?? data.jwt);
+        setUser(data.user ?? null);
         return data;
     }
 
@@ -37,10 +65,10 @@ export function useAuth() {
         password: string,
         role: string,
     ) {
-        const res = await fetch(`${API_BASE}/auth/register`, {
+        const res = await authFetch(`${API_BASE}/auth/register`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ name, username, password, role }),
+            body: JSON.stringify({ nama: name, username, password, role }),
         });
         if (!res.ok) {
             const err = await res.json().catch(() => ({ message: "Register failed" }));
@@ -51,6 +79,7 @@ export function useAuth() {
 
     function logout() {
         setToken(null);
+        setUser(null);
     }
 
     async function authFetch(url: string, options: RequestInit = {}): Promise<Response> {
@@ -61,5 +90,5 @@ export function useAuth() {
         return fetch(url, { ...options, headers });
     }
 
-    return { token, isAuthenticated, login, register, logout, authFetch };
+    return { token, user, isAuthenticated, isAdmin, login, register, logout, authFetch, setUser };
 }

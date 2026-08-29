@@ -3,7 +3,7 @@ import { useRouter } from "vue-router";
 import { useAuth } from "../composables/useAuth";
 
 const router = useRouter();
-const { isAuthenticated, logout } = useAuth();
+const { isAuthenticated, isAdmin, logout } = useAuth();
 
 function handleLogout() {
     logout();
@@ -39,6 +39,26 @@ function handleLogout() {
                 >
                     <i class="bi bi-camera-video-fill"></i>
                     <span>Camera</span>
+                </router-link>
+            </li>
+            <li class="nav-item mb-1">
+                <router-link
+                    to="/gagal-verifikasi"
+                    class="nav-link text-white d-flex align-items-center gap-2"
+                    active-class="active-menu"
+                >
+                    <i class="bi bi-x-octagon-fill"></i>
+                    <span>Gagal Verifikasi</span>
+                </router-link>
+            </li>
+            <li v-if="isAdmin" class="nav-item mb-1">
+                <router-link
+                    to="/users"
+                    class="nav-link text-white d-flex align-items-center gap-2"
+                    active-class="active-menu"
+                >
+                    <i class="bi bi-people-fill"></i>
+                    <span>Data User</span>
                 </router-link>
             </li>
         </ul>

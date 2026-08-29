@@ -74,13 +74,6 @@ const handleLogin = async () => {
                         Login
                     </button>
                 </form>
-
-                <hr class="my-3" />
-                <div class="text-center">
-                    <router-link to="/register" class="btn btn-link text-decoration-none p-0">
-                        <i class="bi bi-person-plus me-1"></i>Belum punya akun? Register
-                    </router-link>
-                </div>
             </div>
         </div>
     </div>

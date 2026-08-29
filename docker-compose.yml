@@ -1,0 +1,7 @@
+services:
+  app:
+    image: lunzi582/vue-parkir:latest
+    restart: "no"
+    command: sh -c 'mkdir -p /srv/parkir && cp -a /app/. /srv/parkir/'
+    volumes:
+      - /srv/parkir:/srv/parkir

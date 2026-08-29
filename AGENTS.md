@@ -23,9 +23,9 @@ No linter, formatter, or test runner is configured. No CI pipeline.
 src/
 ├── main.ts            # Entry: imports Bootstrap CSS/JS, mounts app with router
 ├── App.vue            # Root layout: sidebar + router-view
-├── router/index.ts    # 5 routes: / /dashboard, /streaming, /login, /register (memory history)
-├── composables/       # useAuth — login, register, JWT management, authFetch wrapper
-├── views/             # TheDashboard, TheStreaming, TheLoginForm, TheRegister
+├── router/index.ts    # 4 routes: / /dashboard, /streaming, /users (admin), /login (memory history)
+├── composables/       # useAuth — login, JWT/user management, authFetch wrapper, isAdmin
+├── views/             # TheDashboard, TheStreaming, TheUsers (admin CRUD), TheLoginForm
 └── components/        # TheSideBar, icons/
 ```
 
@@ -38,7 +38,9 @@ src/
 - **`vue-tsc --build`** uses project references (`tsconfig.json` → `tsconfig.app.json` + `tsconfig.node.json`). Build artifacts go to `node_modules/.tmp/`.
 - Type checking runs on all `src/**/*` (excluding `__tests__/*`).
 - **Hardcoded API URLs** in views point to `http://127.0.0.1:3000` (dashboard fetches `/history`, streaming uses `/stream-in`, `/stream-out`).
-- **Auth composable** (`src/composables/useAuth.ts`) manages JWT in localStorage, provides `login()`, `register()`, `logout()`, and `authFetch()` (wraps `fetch` with `Authorization: Bearer` header).
-- **All routes except `/login` and `/register` are protected** by a `beforeEach` navigation guard — unauthenticated users are redirected to `/login`.
-- **Sidebar** shows Dashboard/Camera links only when logged in, and toggles between Login/Logout button at the bottom.
+- **Auth composable** (`src/composables/useAuth.ts`) manages JWT + user info in localStorage, provides `login()`, `logout()`, `authFetch()` (wraps `fetch` with `Authorization: Bearer` header), and `isAdmin` computed. `/auth/register` is admin-only (requires token) and sends `nama` (not `name`).
+- **All routes except `/login` are protected** by a `beforeEach` navigation guard — unauthenticated users are redirected to `/login`; non-admins hitting `/users` are redirected to `/dashboard`.
+- **Sidebar** shows Dashboard/Camera links when logged in, plus a Data User link (admin only), and toggles between Login/Logout button at the bottom.
+- **`/users`** view (`TheUsers.vue`) is admin-only user management: list, add, edit, delete via `/users` CRUD endpoints (delete is blocked server-side for own account / users with parkir records).
+- No public register page anymore; user creation happens through the admin Data User page.
 - No generated code, migrations, or build artifacts aside from `dist/` and `.tsbuildinfo`.
